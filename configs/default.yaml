@@ -1,0 +1,131 @@
+# ---------------------------------------------------------------------------
+# Animal skin disease classification + explainable AI - main configuration.
+#
+# Every script reads this file. Nothing in src/ hardcodes a class name, a class
+# count or a path, so switching dataset means pointing `dataset_config` at a
+# different file in configs/datasets/ and re-running prepare_data.py.
+# ---------------------------------------------------------------------------
+
+project:
+  name: animal-skin-disease-xai
+  seed: 42
+  artifacts_dir: artifacts
+  # Set to true for bit-reproducible runs. Costs roughly 10-20% throughput
+  # because it disables cuDNN's autotuner.
+  deterministic: false
+
+# Which dataset definition to use.
+dataset_config: configs/datasets/dogs_skin_4class.yaml
+
+model:
+  # Any timm model name works. `python -c "import timm; print(timm.list_models('efficientnet*'))"`
+  # lists the options.
+  #
+  # Why efficientnet_b0 is the default: the target dataset has ~443 images, so roughly
+  # 310 training images across 4 classes. A 5.3M-parameter backbone with a frozen first
+  # stage generalises more reliably at that size than a larger one. If you merge in extra
+  # data and get past ~3000 images, these are sensible upgrades:
+  #     backbone: efficientnet_b3        image_size: 300
+  #     backbone: convnext_tiny          image_size: 224
+  #     backbone: resnet50               image_size: 224
+  backbone: efficientnet_b0
+  pretrained: true          # ImageNet weights. Needs internet on first run; cached after.
+  image_size: 224
+  dropout: 0.3
+  # Dropped channels before the classifier head. 0.0 disables it.
+  drop_path_rate: 0.1
+
+training:
+  device: auto              # auto | cuda | mps | cpu
+  batch_size: 32
+  num_workers: 4            # set to 0 on Windows if you hit dataloader worker errors
+  pin_memory: true
+  amp: true                 # mixed precision; ignored on CPU
+
+  # Stage 1 trains only the classifier head so the random head cannot destroy the
+  # pretrained features with large early gradients. Stage 2 unfreezes everything at a
+  # lower learning rate.
+  epochs_head: 5
+  epochs_finetune: 40
+  lr_head: 1.0e-3
+  lr_backbone: 1.0e-4
+  weight_decay: 1.0e-4
+  grad_clip: 1.0
+
+  scheduler: cosine         # cosine | plateau | none
+  warmup_epochs: 2
+  label_smoothing: 0.05
+  class_weighting: balanced # balanced | none - balanced counters the class imbalance
+
+  # Checkpointing and stopping are driven by macro-F1, not accuracy, because accuracy
+  # flatters a model on an imbalanced set.
+  monitor: val_macro_f1     # val_macro_f1 | val_accuracy | val_loss
+  early_stopping_patience: 10
+
+augmentation:
+  # Geometric. Vertical flip is on because a skin lesion has no canonical "up".
+  horizontal_flip: 0.5
+  vertical_flip: 0.3
+  rotation_degrees: 25
+  scale_jitter: [0.75, 1.0]   # RandomResizedCrop scale range
+  # Photometric. Deliberately moderate: colour IS diagnostic signal in dermatology,
+  # so aggressive hue shifts would destroy the thing we want the model to learn.
+  brightness: 0.2
+  contrast: 0.2
+  saturation: 0.15
+  hue: 0.02
+  # Regularisation
+  random_erasing: 0.15
+
+crossval:
+  # Off by default - a single split trains far faster. Turn on for the numbers you
+  # actually report, since one split on 443 images has a very wide error bar.
+  enabled: false
+  n_splits: 5
+
+xai:
+  default_method: gradcam_pp
+  # Methods offered by the API and the UI, in display order.
+  enabled_methods: [gradcam_pp, integrated_gradients, lime]
+  overlay_alpha: 0.45
+  colormap: turbo           # turbo | jet | inferno | viridis
+
+  gradcam_pp:
+    # null = resolve the last convolutional feature map automatically.
+    target_layer: null
+
+  integrated_gradients:
+    steps: 64
+    baseline: blur          # blur | zero | black | white | gaussian_noise
+    # Internal batch size for the interpolation path; lower it if VRAM is tight.
+    internal_batch_size: 16
+
+  lime:
+    num_samples: 800
+    num_features: 8
+    batch_size: 32
+    segmentation:
+      kernel_size: 4
+      max_dist: 200
+      ratio: 0.2
+
+  faithfulness:
+    # Deletion / insertion curves. Quantifies whether a saliency map actually points at
+    # the pixels the model relies on, instead of merely looking convincing.
+    enabled: true
+    steps: 10
+    # The two curves use different references on purpose - see the module docstring in
+    # src/aniderm/explain/faithfulness.py. Deleting into a blur would leave each region's
+    # colour behind, so a colour-sensitive model would score every map as useless.
+    deletion_baseline: zero     # zero | black | white | blur | gaussian_noise
+    insertion_baseline: blur
+
+serving:
+  host: 127.0.0.1
+  port: 8000
+  checkpoint: artifacts/checkpoints/best.pt
+  max_upload_mb: 10
+  # Vite dev server and the built preview server.
+  allowed_origins: ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:4173"]
+  # Minimum top-1 probability before the UI stops presenting the result as a finding.
+  low_confidence_threshold: 0.55

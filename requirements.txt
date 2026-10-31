@@ -1,0 +1,36 @@
+# Core deep learning stack.
+# Install the CUDA build of torch first if you have an NVIDIA GPU:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+torch>=2.3,<3.0
+torchvision>=0.18,<1.0
+timm>=1.0.9,<2.0
+
+# Numerics, metrics and tabular handling
+numpy>=1.26,<4.0
+pandas>=2.1,<4.0
+scikit-learn>=1.4,<2.0
+scipy>=1.11,<2.0
+
+# Imaging
+pillow>=10.2,<13.1
+
+# Explainability
+captum>=0.7,<1.0
+lime>=0.2.0.1,<0.3
+scikit-image>=0.22,<1.0
+
+# Configuration and CLI
+PyYAML>=6.0,<7.0
+tqdm>=4.66,<5.0
+
+# API layer
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.29,<1.0
+python-multipart>=0.0.9,<1.0
+pydantic>=2.6,<3.0
+
+# Reporting
+matplotlib>=3.8,<4.0
+
+# Dataset download (optional, only needed for scripts/download_dataset.py)
+kaggle>=1.6,<2.0

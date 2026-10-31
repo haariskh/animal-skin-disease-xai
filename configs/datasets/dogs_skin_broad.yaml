@@ -1,0 +1,59 @@
+# Alternative dataset definition: canine skin disease, broader taxonomy.
+#
+# Source: Kaggle - youssefmohmmed/dogs-skin-diseases-image-dataset
+#
+# WARNING - UNVERIFIED. The per-class counts and licence of this dataset could not be
+# confirmed from its published page. Run `python scripts/prepare_data.py --config
+# configs/default.yaml --dataset configs/datasets/dogs_skin_broad.yaml --inspect-only`
+# first: that prints the folder structure and per-class counts actually on disk, then
+# correct the class list below to match before training.
+
+name: dogs_skin_broad
+description: Canine skin disease, broader taxonomy (verify against your download).
+
+source:
+  kind: kaggle
+  identifier: youssefmohmmed/dogs-skin-diseases-image-dataset
+
+raw_dir: data/raw/dogs_skin_broad
+manifest_path: data/processed/dogs_skin_broad/manifest.csv
+image_extensions: [".jpg", ".jpeg", ".png", ".bmp", ".webp"]
+min_images_per_class: 20
+
+classes:
+  - key: dermatitis
+    display_name: Dermatitis
+    aliases: ["dermatitis"]
+    summary: General inflammation of the skin.
+    colour: "#e8743b"
+  - key: demodicosis
+    display_name: Demodicosis
+    aliases: ["demodicosis", "demodex", "mange"]
+    summary: Mite infestation causing patchy hair loss and crusting.
+    colour: "#d65f8a"
+  - key: ringworm
+    display_name: Ringworm
+    aliases: ["ringworm", "dermatophytosis"]
+    summary: Dermatophyte infection with circular scaling lesions.
+    colour: "#9b6bd6"
+  - key: fungal_infections
+    display_name: Fungal infections
+    aliases: ["fungal infections", "fungal infection", "fungal"]
+    summary: Yeast or fungal overgrowth of the skin surface.
+    colour: "#6b8fd6"
+  - key: hypersensitivity
+    display_name: Hypersensitivity
+    aliases: ["hypersensitivity", "allergic dermatitis", "allergy"]
+    summary: Allergic reaction with erythema and self-trauma.
+    colour: "#dcb63b"
+  - key: healthy
+    display_name: Healthy
+    aliases: ["healthy", "normal"]
+    summary: No dermatological disease visible.
+    colour: "#3fa66b"
+
+split:
+  val_size: 0.15
+  test_size: 0.15
+  stratify: true
+  group_pattern: null

@@ -1,0 +1,48 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "API server",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["api.main:app", "--reload", "--port", "8000"],
+      "cwd": "${workspaceFolder}",
+      "env": { "PYTHONPATH": "${workspaceFolder}/src:${workspaceFolder}" },
+      "justMyCode": false
+    },
+    {
+      "name": "Train",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/train.py",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Prepare data (inspect only)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/prepare_data.py",
+      "args": ["--inspect-only"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Explain one image",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/explain_image.py",
+      "args": ["${input:imagePath}"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "imagePath",
+      "type": "promptString",
+      "description": "Path to the image to analyse"
+    }
+  ]
+}

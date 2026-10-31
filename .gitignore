@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Data and model artifacts are never committed
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+artifacts/checkpoints/*
+!artifacts/checkpoints/.gitkeep
+artifacts/reports/*
+!artifacts/reports/.gitkeep
+
+# Secrets
+.env
+kaggle.json
+
+# Frontend
+node_modules/
+frontend/dist/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# TypeScript incremental build info
+*.tsbuildinfo

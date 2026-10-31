@@ -1,0 +1,86 @@
+# Dataset definition: canine skin disease, 4 classes.
+#
+# Primary source (what this project is built against):
+#   Kaggle - yashmotiani/dogs-skin-disease-dataset
+#   443 RGB images. Per-class counts reported in the peer-reviewed study that used it
+#   (Mobile-based deep learning for early diagnosis of canine skin and eye diseases, 2025):
+#       Fungal infections            137
+#       Healthy                      119
+#       Bacterial dermatosis          97
+#       Hypersensitivity dermatitis   90
+#
+# Taxonomy lineage:
+#   The same four diagnostic categories were defined by Hwang et al. (2022),
+#   "Classification of dog skin diseases using deep learning with images captured from a
+#   multispectral imaging device", Molecular & Cellular Toxicology.
+#   NOTE: the companion Mendeley record (doi:10.17632/5dbht54kw7.1) deposits ONLY a label
+#   file - image_label.txt, 62 entries - and contains no images. It cannot be trained on.
+#   See docs/DATASET.md for the full provenance note.
+
+name: dogs_skin_4class
+description: Canine skin disease, four diagnostic categories.
+
+source:
+  kind: kaggle
+  identifier: yashmotiani/dogs-skin-disease-dataset
+
+raw_dir: data/raw/dogs_skin_4class
+manifest_path: data/processed/dogs_skin_4class/manifest.csv
+
+# Any file whose suffix is not in this list is ignored during discovery.
+image_extensions: [".jpg", ".jpeg", ".png", ".bmp", ".webp"]
+
+# Discovery refuses to proceed if a declared class ends up with fewer than this many images,
+# which is how a mis-extracted or partially downloaded archive gets caught early.
+min_images_per_class: 20
+
+# Class order here IS the label order the model learns. Do not reorder after training.
+# `aliases` are matched case-insensitively against folder names, after stripping
+# non-alphanumeric characters, so "Bacterial_dermatosis", "bacterial dermatosis" and
+# "BacterialDermatosis" all resolve to the same class.
+classes:
+  - key: bacterial_dermatosis
+    display_name: Bacterial dermatosis
+    aliases: ["bacterial dermatosis", "bacterial dermatitis", "bacterial", "pyoderma"]
+    summary: >-
+      Bacterial infection of the skin, most often secondary to another trigger.
+      Commonly presents with pustules, papules, crusting and epidermal collarettes.
+    colour: "#e8743b"
+
+  - key: fungal_infections
+    display_name: Fungal infections
+    aliases: ["fungal infections", "fungal infection", "fungal", "dermatophytosis", "ringworm", "malassezia"]
+    summary: >-
+      Dermatophyte or yeast infection. Typically shows circular areas of alopecia,
+      scaling and a well-demarcated border.
+    colour: "#9b6bd6"
+
+  - key: hypersensitivity_allergic_dermatosis
+    display_name: Hypersensitivity allergic dermatosis
+    aliases:
+      ["hypersensitivity allergic dermatosis", "hypersensitivity dermatitis", "hypersensitivity",
+       "allergic dermatitis", "atopic dermatitis", "allergy"]
+    summary: >-
+      Allergic skin reaction, for example atopic, flea-bite or food-related.
+      Erythema and self-trauma from scratching dominate the picture.
+    colour: "#dcb63b"
+
+  - key: healthy
+    display_name: Healthy
+    aliases: ["healthy", "normal", "health", "no disease"]
+    summary: >-
+      No dermatological disease visible. Intact coat and uniform skin tone.
+    colour: "#3fa66b"
+
+split:
+  val_size: 0.15
+  test_size: 0.15
+  stratify: true
+  # Group-aware splitting prevents several photographs of the SAME animal from landing in
+  # both train and test, which otherwise inflates accuracy badly on a dataset this small.
+  # The regex is applied to the filename stem; capture group 1 becomes the group id.
+  # Leave as null if filenames carry no animal identifier - every image then forms its own
+  # group and the split degrades gracefully to plain stratified sampling.
+  # Example for the Mendeley-style naming scheme (dog210505_01_02_25 -> 210505_01_02):
+  #   group_pattern: '^[Dd]og(\d+_\d+_\d+)_\d+$'
+  group_pattern: null
