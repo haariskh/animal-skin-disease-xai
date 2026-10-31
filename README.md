@@ -21,7 +21,7 @@ layout is identical and the descriptions are the clinical ones.*
 Python 3.10 or newer, Node 18 or newer.
 
 ```bash
-git clone <your-repo-url> animal-skin-disease-xai
+git clone https://github.com/haariskh/animal-skin-disease-xai.git
 cd animal-skin-disease-xai
 
 python -m venv .venv
